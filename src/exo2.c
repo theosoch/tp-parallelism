@@ -6,22 +6,21 @@
 // 
 
 #define USED_THREAD_COUNT 8
-#define SIZE 20000
+#define SIZE (int) (30000)
 
 // 
 
-int sequential_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
+int sequential_mat_sum(const int* M, const int Msize, int* usedThreadCountPtr) {
     int result = 0;
+    const int Mtablength = Msize*Msize;
     
-    *usedThreadCount = 1;
+    // Here only to retrieve information data for results comparison
+    *usedThreadCountPtr = 1;
 
     // 
 
-    for(int i = 0; i < Msize; ++i) {
-        for(int j = 0; j < Msize; ++j) {
-            result += M[i*Msize + j];
-        }
-    }
+    for(int i = 0; i < Mtablength; ++i)
+        result += M[i];
 
     // 
 
@@ -30,8 +29,9 @@ int sequential_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
 
 // 
 
-int parallelized1_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
+int parallelized1_mat_sum(const int* M, const int Msize, int* usedThreadCountPtr) {
     int result = 0;
+    const int Mtablength = Msize*Msize;
 
     // 
 
@@ -39,22 +39,23 @@ int parallelized1_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
 
     #pragma omp parallel num_threads(USED_THREAD_COUNT)
     {
-        *usedThreadCount = omp_get_num_threads();
+        #pragma omp single
+        // Here only to retrieve information data for results comparison
+        *usedThreadCountPtr = omp_get_num_threads();
+
+        // 
 
         const int threadNum = omp_get_thread_num();
 
         partialsums[threadNum] = 0;
 
         #pragma omp for
-        for(int i = 0; i < Msize; ++i) {
-            for(int j = 0; j < Msize; ++j) {
-                partialsums[threadNum] += M[i*Msize + j];
-            }
-        }
-    }
+        for(int i = 0; i < Mtablength; ++i)
+            partialsums[threadNum] += M[i];
 
-    for(int i = 0; i < USED_THREAD_COUNT; ++i) {
-        result += partialsums[i];
+        #pragma omp single
+        for(int i = 0; i < USED_THREAD_COUNT; ++i)
+            result += partialsums[i];
     }
 
     // 
@@ -64,28 +65,29 @@ int parallelized1_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
 
 // 
 
-int parallelized2_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
+int parallelized2_1_mat_sum(const int* M, const int Msize, int* usedThreadCountPtr) {
     int result = 0;
+    const int Mtablength = Msize*Msize;
 
     // 
 
     #pragma omp parallel num_threads(USED_THREAD_COUNT)
     {
-        *usedThreadCount = omp_get_num_threads();
+        #pragma omp single
+        // Here only to retrieve information data for results comparison
+        *usedThreadCountPtr = omp_get_num_threads();
+
+        // 
 
         int partialsum = 0;
 
         #pragma omp for
-        for(int i = 0; i < Msize; ++i) {
-            for(int j = 0; j < Msize; ++j) {
-                partialsum += M[i*Msize + j];
-            }
-        }
+        for(int i = 0; i < Mtablength; ++i)
+            partialsum += M[i];
 
+        // Mutex incrementation
         #pragma omp critical
-        {
-            result += partialsum;
-        }
+        result += partialsum;
     }
 
     // 
@@ -95,21 +97,55 @@ int parallelized2_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
 
 // 
 
-int parallelized3_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
+int parallelized2_2_mat_sum(const int* M, const int Msize, int* usedThreadCountPtr) {
     int result = 0;
+    const int Mtablength = Msize*Msize;
 
     // 
 
     #pragma omp parallel num_threads(USED_THREAD_COUNT)
     {
-        *usedThreadCount = omp_get_num_threads();
+        #pragma omp single
+        // Here only to retrieve information data for results comparison
+        *usedThreadCountPtr = omp_get_num_threads();
+
+        // 
+
+        int partialsum = 0;
+
+        #pragma omp for
+        for(int i = 0; i < Mtablength; ++i)
+            partialsum += M[i];
+
+        // Mutex incrementation
+        #pragma omp atomic
+        result += partialsum;
+    }
+
+    // 
+
+    return result;
+}
+
+// 
+
+int parallelized3_mat_sum(const int* M, const int Msize, int* usedThreadCountPtr) {
+    int result = 0;
+    const int Mtablength = Msize*Msize;
+
+    // 
+
+    #pragma omp parallel num_threads(USED_THREAD_COUNT)
+    {
+        #pragma omp single
+        // Here only to retrieve information data for results comparison
+        *usedThreadCountPtr = omp_get_num_threads();
+
+        // 
 
         #pragma omp for reduction(+:result)
-        for(int i = 0; i < Msize; ++i) {
-            for(int j = 0; j < Msize; ++j) {
-                result += M[i*Msize + j];
-            }
-        }
+        for(int i = 0; i < Mtablength; ++i)
+            result += M[i];
     }
 
     // 
@@ -120,43 +156,34 @@ int parallelized3_mat_sum(const int* M, const int Msize, int* usedThreadCount) {
 // 
 
 void benchmarkTest(const char* casename, int (*sumcalc)(const int* M, const int Msize, int* threadcount), const int* M, const int Msize) {
-    double start = omp_get_wtime();
-
-    // 
-
     int threadcount = 1;
+    
+    double start = omp_get_wtime();
     const int result = sumcalc(M, Msize, &threadcount);
-
-    // 
-
     double stop = omp_get_wtime();
+
     double t = stop-start;
 
-    printf("%s,%d,%f,%d\n", casename, threadcount, t, result);
+    printf("%s,%d,%f,%d,%d\n", casename, threadcount, t, Msize, result);
 }
 
 // 
 
 int exo2(const int argc, const char* argv[]) {
-    int* M = (int*) malloc(SIZE*SIZE*sizeof(int));
+    const int Mtablength = SIZE*SIZE;
+    int* M = (int*) malloc(Mtablength*sizeof(int));
 
-    // Initialisations
-    #pragma omp parallel
-    {
-        #pragma omp for
-        for(int i = 0; i < SIZE; i++){
-            for(int j = 0; j < SIZE; j++){
-                M[i*SIZE + j] = 1;
-            }
-        }
-    }
+    // Initialisations (parallélisée pour gagner un peu de temps)
+    #pragma omp parallel for
+    for(int i = 0; i < Mtablength; i++) M[i] = 1;
 
     // Calcul en faisant varier le nombre de threads
-    printf("case,threadcount,exectime,result\n");
+    printf("case,threadcount,exectime,matsize,result\n");
 
     benchmarkTest("sequential", sequential_mat_sum, M, SIZE);
     benchmarkTest("partial sums", parallelized1_mat_sum, M, SIZE);
-    benchmarkTest("partial sums global increment", parallelized2_mat_sum, M, SIZE);
+    benchmarkTest("global sum incremented by each thread (critical)", parallelized2_1_mat_sum, M, SIZE);
+    benchmarkTest("global sum incremented by each thread (atomic)", parallelized2_2_mat_sum, M, SIZE);
     benchmarkTest("reduction", parallelized3_mat_sum, M, SIZE);
 
     // 

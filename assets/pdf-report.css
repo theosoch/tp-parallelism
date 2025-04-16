@@ -1,0 +1,12 @@
+@page {
+    size: 8.5in 11in !important;
+    bleed: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    padding-right: 25px !important;
+}

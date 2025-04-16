@@ -1,5 +1,0 @@
-case,threadcount,exectime,result
-sequential,1,0.653877,400000000
-partial sums,8,0.642039,400000000
-partial sums global increment,8,0.092145,400000000
-reduction,8,0.087866,400000000

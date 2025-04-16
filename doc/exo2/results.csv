@@ -1,0 +1,6 @@
+case,threadcount,exectime,matsize,result
+sequential,1,1.514797,30000,900000000
+partial sums,8,6.362032,30000,900000000
+global sum incremented by each thread (critical),8,0.280915,30000,900000000
+global sum incremented by each thread (atomic),8,0.248765,30000,900000000
+reduction,8,0.245161,30000,900000000

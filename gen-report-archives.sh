@@ -15,11 +15,10 @@ do
     exoname=$(basename $exodir)
     rm -rf ${DIRNAME}/build/$exoname.report
     mkdir -p ${DIRNAME}/build/$exoname.report
-    cp -r $exodir/.ipynb_checkpoints ${DIRNAME}/build/$exoname.report/
-    cp -r $exodir/rapport.ipynb ${DIRNAME}/build/$exoname.report/
+    cp -r $exodir/* ${DIRNAME}/build/$exoname.report/
 
     jupyter nbconvert --to html ${DIRNAME}/build/$exoname.report/rapport.ipynb >/dev/null 2>&1
-    weasyprint ${DIRNAME}/build/$exoname.report/rapport.html ${DIRNAME}/build/$exoname.report/rapport.pdf >/dev/null 2>&1
+    weasyprint -s ${DIRNAME}/assets/pdf-report.css ${DIRNAME}/build/$exoname.report/rapport.html ${DIRNAME}/build/$exoname.report/rapport.pdf >/dev/null 2>&1
 
     rm -rf ${DIRNAME}/build/$exoname.report/rapport.ipynb ${DIRNAME}/build/$exoname.report/rapport.html ${DIRNAME}/build/$exoname.report/.ipynb_checkpoints
 
