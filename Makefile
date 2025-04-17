@@ -15,7 +15,7 @@ EXECUTABLE=$(BUILDDIR)/$(EXECNAME)
 COMPILER=gcc
 COMPILER_FLAGS=-std=c23 -Wall -Wextra -g -pedantic -Wformat=0
 LIBRARIES_FLAGS=-lm -fopenmp
-ADDITIONNAL_FLAGS=-DEMBEDDED
+ADDITIONNAL_FLAGS=-DDEV
 
 # SOURCES = $(shell find $(SRCDIR) -type f -name '*.c' -a -not -name 'main.c')
 OBJECTS = $(subst .c,.o,$(subst $(SRCDIR),$(OBJDIR),$(SOURCES)))
@@ -104,8 +104,8 @@ exo:
 
 	@$(call TASK_LOG,Compiling project from \e[38;2;128;0;255m$(PROJECT_MAIN)\e[0m to \e[38;2;128;0;255m$@\e[0m)
 
-	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) -c ./exo$(n)/main.c -o $(OBJDIR)/exo$(n).o $(LIBRARIES_FLAGS))
-	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) $(OBJDIR)/exo$(n).o -o $(BUILDDIR)/exo$(n) $(LIBRARIES_FLAGS))
+	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) -c ./exo$(n)/main.c -o $(OBJDIR)/exo$(n).o $(LIBRARIES_FLAGS) $(ADDITIONNAL_FLAGS))
+	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) $(OBJDIR)/exo$(n).o -o $(BUILDDIR)/exo$(n) $(LIBRARIES_FLAGS) $(ADDITIONNAL_FLAGS))
 
 	@$(call TASK_END)
 
