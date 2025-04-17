@@ -4,28 +4,52 @@ DIRNAME=$(dirname $0)
 
 # 
 
+BUILDDIR=${DIRNAME}/build
+ASSETSDIR=${DIRNAME}/assets
+
+# 
+
 source ${DIRNAME}/python-venv/bin/activate
 
 # 
 
-exodirs=($(find ${DIRNAME}/doc -type d -name "exo*"))
+exodirs=($(find ${DIRNAME}/ -maxdepth 1 -type d -name "exo*"))
 
 for exodir in ${exodirs[@]}
 do
     exoname=$(basename $exodir)
-    rm -rf ${DIRNAME}/build/$exoname.report
-    mkdir -p ${DIRNAME}/build/$exoname.report
-    cp -r $exodir/* ${DIRNAME}/build/$exoname.report/
 
-    jupyter nbconvert --to html ${DIRNAME}/build/$exoname.report/rapport.ipynb >/dev/null 2>&1
-    weasyprint -s ${DIRNAME}/assets/pdf-report.css ${DIRNAME}/build/$exoname.report/rapport.html ${DIRNAME}/build/$exoname.report/rapport.pdf >/dev/null 2>&1
+    # 
 
-    rm -rf ${DIRNAME}/build/$exoname.report/rapport.ipynb ${DIRNAME}/build/$exoname.report/rapport.html ${DIRNAME}/build/$exoname.report/.ipynb_checkpoints
+    REPORT_TMP_DIR=${BUILDDIR}/$exoname.report
 
-    cp ${DIRNAME}/assets/Makefile ${DIRNAME}/build/$exoname.report/
-    cp ${DIRNAME}/src/$exoname.c ${DIRNAME}/build/$exoname.report/main.c
-    cp ${DIRNAME}/src/$exoname.h ${DIRNAME}/build/$exoname.report/main.h
+    # Initializing report
 
-    rm -rf ../$exoname.zip
-    (cd ${DIRNAME}/build/$exoname.report && zip -r ../$exoname.zip .)
+    rm -rf ${REPORT_TMP_DIR}
+    mkdir -p ${REPORT_TMP_DIR}
+    cp -r $exodir/* ${REPORT_TMP_DIR}/
+
+    # Generating PDF for report
+
+    jupyter nbconvert --to html ${REPORT_TMP_DIR}/rapport.ipynb >/dev/null 2>&1
+    weasyprint -s ${ASSETSDIR}/pdf-report.css ${REPORT_TMP_DIR}/rapport.html ${REPORT_TMP_DIR}/rapport.pdf >/dev/null 2>&1
+
+    # Cleaning report files
+
+    rm -rf ${REPORT_TMP_DIR}/rapport.ipynb ${REPORT_TMP_DIR}/rapport.html ${REPORT_TMP_DIR}/.ipynb_checkpoints
+
+    cp ${ASSETSDIR}/Makefile ${REPORT_TMP_DIR}/
+
+    # Creating report archive
+
+    rm -rf ${BUILDDIR}/$exoname.zip
+    (cd ${REPORT_TMP_DIR} && zip -q -r ../$exoname.zip .)
+
+    # Cleaning
+
+    rm -rf ${REPORT_TMP_DIR}
+
+    # 
+
+    echo "Report of ${exoname} generated at ${BUILDDIR}/${exoname}.zip"
 done

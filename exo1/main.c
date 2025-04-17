@@ -6,7 +6,7 @@
 
 // 
 
-int exo1(const int argc, const char* argv[]) {
+int main() {
     int nb, i , j, k;
     
     double t,start,stop;
@@ -56,11 +56,3 @@ int exo1(const int argc, const char* argv[]) {
 
     return EXIT_SUCCESS;
 }
-
-// 
-
-#ifndef EMBEDDED
-int main(const int argc, const char* argv[]) { return exo1(argc, argv); }
-#else
-#include "./exo1.h"
-#endif

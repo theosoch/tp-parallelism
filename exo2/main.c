@@ -158,26 +158,28 @@ int parallelized3_mat_sum(const int* M, const int Msize, int* usedThreadCountPtr
 void benchmarkTest(const char* casename, int (*sumcalc)(const int* M, const int Msize, int* threadcount), const int* M, const int Msize) {
     int threadcount = 1;
     
-    double start = omp_get_wtime();
+    const double start = omp_get_wtime();
     const int result = sumcalc(M, Msize, &threadcount);
-    double stop = omp_get_wtime();
+    const double stop = omp_get_wtime();
 
-    double t = stop-start;
+    const double t = stop-start;
 
     printf("%s,%d,%f,%d,%d\n", casename, threadcount, t, Msize, result);
 }
 
 // 
 
-int exo2(const int argc, const char* argv[]) {
+int main() {
     const int Mtablength = SIZE*SIZE;
     int* M = (int*) malloc(Mtablength*sizeof(int));
 
-    // Initialisations (parallélisée pour gagner un peu de temps)
+    // 
+
     #pragma omp parallel for
     for(int i = 0; i < Mtablength; i++) M[i] = 1;
 
-    // Calcul en faisant varier le nombre de threads
+    // 
+
     printf("case,threadcount,exectime,matsize,result\n");
 
     benchmarkTest("sequential", sequential_mat_sum, M, SIZE);
@@ -188,16 +190,7 @@ int exo2(const int argc, const char* argv[]) {
 
     // 
 
-    // Liberations
     free(M);
 
     return EXIT_SUCCESS;
 }
-
-// 
-
-#ifndef EMBEDDED
-int main(const int argc, const char* argv[]) { return exo2(argc, argv); }
-#else
-#include "./exo1.h"
-#endif

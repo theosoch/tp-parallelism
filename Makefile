@@ -2,22 +2,22 @@
 
 MAIN = ./src/main.c
 
-SRCDIR=./src/
-OBJDIR=./objects/
+# SRCDIR=./src
+OBJDIR=./objects
 
-BUILDDIR=./build/
+BUILDDIR=./build
 EXECNAME=main
 
 # 
 
-EXECUTABLE=$(BUILDDIR)$(EXECNAME)
+EXECUTABLE=$(BUILDDIR)/$(EXECNAME)
 
 COMPILER=gcc
 COMPILER_FLAGS=-std=c23 -Wall -Wextra -g -pedantic -Wformat=0
 LIBRARIES_FLAGS=-lm -fopenmp
 ADDITIONNAL_FLAGS=-DEMBEDDED
 
-SOURCES = $(shell find -type f -name '*.c' -a -not -name 'main.c')
+# SOURCES = $(shell find $(SRCDIR) -type f -name '*.c' -a -not -name 'main.c')
 OBJECTS = $(subst .c,.o,$(subst $(SRCDIR),$(OBJDIR),$(SOURCES)))
 
 # 
@@ -54,42 +54,42 @@ test:
 	@printf "$(SOURCES)\n"
 	@printf "$(OBJECTS)\n"
 
-# MAKE ALL
+# # MAKE ALL
 
-all:
-	@$(MAKE) $(EXECUTABLE) -s
-	@$(MAKE) compile -s
+# all:
+# 	@$(MAKE) $(EXECUTABLE) -s
+# 	@$(MAKE) compile -s
 
-# PROJECT COMPILATION
+# # PROJECT COMPILATION
 
-$(EXECUTABLE): $(OBJECTS)
+# $(EXECUTABLE): $(OBJECTS)
 
-compile:
-	@$(call TASK_BEGIN,project compilation)
+# compile:
+# 	@$(call TASK_BEGIN,project compilation)
 
-	@$(call TASK_COMMAND_EXECUTION,mkdir -p $(BUILDDIR))
+# 	@$(call TASK_COMMAND_EXECUTION,mkdir -p $(BUILDDIR)/)
 
-	@$(call TASK_LOG,Compiling project from \e[38;2;128;0;255m$(PROJECT_MAIN)\e[0m to \e[38;2;128;0;255m$@\e[0m)
+# 	@$(call TASK_LOG,Compiling project from \e[38;2;128;0;255m$(PROJECT_MAIN)\e[0m to \e[38;2;128;0;255m$@\e[0m)
 
-	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) $(MAIN) $(OBJECTS) -o $(EXECUTABLE) $(LIBRARIES_FLAGS) $(ADDITIONNAL_FLAGS))
+# 	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) $(MAIN) $(OBJECTS) -o $(EXECUTABLE) $(LIBRARIES_FLAGS) $(ADDITIONNAL_FLAGS))
 
-	@$(call TASK_END)
+# 	@$(call TASK_END)
 
-#
+# #
 
-# OBJECTS GENERATION
+# # OBJECTS GENERATION
 
-$(OBJDIR)%.o: $(SRCDIR)%.c $(SRCDIR)%.h
-	@$(call TASK_BEGIN,object generation)
+# $(OBJDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
+# 	@$(call TASK_BEGIN,object generation)
 
-	@$(call TASK_LOG,Generating object from \e[38;2;128;0;255m$<\e[0m to \e[38;2;128;0;255m$@\e[0m)
+# 	@$(call TASK_LOG,Generating object from \e[38;2;128;0;255m$<\e[0m to \e[38;2;128;0;255m$@\e[0m)
 
-	@$(call TASK_COMMAND_EXECUTION,mkdir -p $(dir $@))
-	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) -c $< -o $@ $(LIBRARIES_FLAGS) $(ADDITIONNAL_FLAGS))
+# 	@$(call TASK_COMMAND_EXECUTION,mkdir -p $(dir $@))
+# 	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) -c $< -o $@ $(LIBRARIES_FLAGS) $(ADDITIONNAL_FLAGS))
 
-	@$(call TASK_END)
+# 	@$(call TASK_END)
 
-# 
+# # 
 
 #
 
@@ -99,12 +99,13 @@ $(OBJDIR)%.o: $(SRCDIR)%.c $(SRCDIR)%.h
 exo:
 	@$(call TASK_BEGIN,project compilation)
 
+	@$(call TASK_COMMAND_EXECUTION,mkdir -p $(OBJDIR))
 	@$(call TASK_COMMAND_EXECUTION,mkdir -p $(BUILDDIR))
 
 	@$(call TASK_LOG,Compiling project from \e[38;2;128;0;255m$(PROJECT_MAIN)\e[0m to \e[38;2;128;0;255m$@\e[0m)
 
-	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) -c $(SRCDIR)exo$(n).c -o $(OBJDIR)exo$(n).o $(LIBRARIES_FLAGS))
-	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) $(OBJDIR)exo$(n).o -o $(BUILDDIR)exo$(n) $(LIBRARIES_FLAGS))
+	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) -c ./exo$(n)/main.c -o $(OBJDIR)/exo$(n).o $(LIBRARIES_FLAGS))
+	@$(call TASK_COMMAND_EXECUTION,$(COMPILER) $(COMPILER_FLAGS) $(OBJDIR)/exo$(n).o -o $(BUILDDIR)/exo$(n) $(LIBRARIES_FLAGS))
 
 	@$(call TASK_END)
 
@@ -115,7 +116,7 @@ exo:
 clean:
 	@$(call TASK_BEGIN,clean)
 	
-	@$(call TASK_COMMAND_EXECUTION,find $(OBJECT_DIRECTORY) -name '*.o' | xargs rm -f )
+	@$(call TASK_COMMAND_EXECUTION,find $(OBJDIR) -name '*.o' | xargs rm -f )
 
 	@$(call TASK_END)
 
